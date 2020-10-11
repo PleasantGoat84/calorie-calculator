@@ -66,7 +66,7 @@
 
     <v-main class="pb-15">
       <v-container fluid class="px-0">
-        <v-card color="info" class="white--text mx-auto">
+        <v-card color="info" class="white--text mx-auto table-card">
           <v-card-title>
             <h2>{{ foodKinds[tab] }}</h2>
           </v-card-title>
@@ -194,7 +194,7 @@ export default class CalorieCalc extends Vue {
   color: #2c3e50;
 }
 
-.v-card {
+.v-card.table-card {
   width: 95%;
   @media (min-width: 1000px) {
     width: 85%;
