@@ -91,22 +91,32 @@
       class="d-flex align-center subtitle-1"
       v-if="selected[0]"
     >
-      <div>已選取 {{ selected.length }} 項食品</div>
+      <div class="d-flex align-center">
+        <v-icon class="mr-2">mdi-check</v-icon>
+        已選取 {{ selected.length }} 項食品
+      </div>
+
       <v-spacer />
-      <div>共 {{ totalCalorie }} 卡路里</div>
+
+      <div class="d-flex align-center">
+        <v-icon class="mr-2">mdi-fire</v-icon>
+        共 {{ totalCalorie }} 卡路里
+      </div>
     </v-bottom-navigation>
 
     <v-btn fab color="info" x-large fixed right bottom @click="dialog = true">
       <v-icon>mdi-chart-bar</v-icon>
     </v-btn>
 
-    <v-dialog v-model="dialog" max-width="60%">
+    <v-dialog v-model="dialog" max-width="70%">
       <v-card>
-        <v-card-title>
-          我的餐單
+        <v-card-title class="py-5">
+          <h3>
+            我的餐單
+          </h3>
         </v-card-title>
 
-        <v-simple-table class="mx-10 text-left">
+        <v-simple-table class="mx-10 text-left total-table elevation-2">
           <thead>
             <tr>
               <th>
@@ -118,6 +128,7 @@
               <th>
                 卡路里
               </th>
+              <th class="action"></th>
             </tr>
           </thead>
 
@@ -126,17 +137,34 @@
               <td>{{ food.name }}</td>
               <td>{{ food.quantity }}</td>
               <td>{{ food.calorie }}</td>
+              <td class="text-center">
+                <v-btn icon @click="deleteFood(i)">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </td>
             </tr>
 
             <tr class="accent white--text">
               <td>總計</td>
               <td>-</td>
               <td>{{ totalCalorie }}</td>
+              <td></td>
             </tr>
           </tbody>
         </v-simple-table>
 
-        <v-card-actions class="mt-5 pb-5">
+        <v-card-actions class="mt-5 pa-6">
+          <v-btn
+            color="red"
+            dark
+            @click="
+              selected = [];
+              dialog = false;
+            "
+          >
+            清空已選食品
+          </v-btn>
+
           <v-spacer />
 
           <v-btn color="primary">
@@ -176,7 +204,12 @@ export default class CalorieCalc extends Vue {
 
   get totalCalorie() {
     const calories = this.selected.map(food => food.calorie);
-    return calories[1] ? calories.reduce((total, cur) => total + cur) : 0;
+    console.debug(calories);
+    return calories[0] ? calories.reduce((total, cur) => total + cur) : 0;
+  }
+
+  deleteFood(idx: number) {
+    this.selected.splice(idx, 1);
   }
 
   created() {
@@ -202,8 +235,17 @@ export default class CalorieCalc extends Vue {
 }
 
 .v-bottom-navigation {
-  $p: 13%;
+  $p: 11%;
   padding-left: $p;
   padding-right: $p;
+}
+
+.total-table {
+  max-height: 65vh;
+  overflow-y: auto;
+
+  .action {
+    width: 100px;
+  }
 }
 </style>
