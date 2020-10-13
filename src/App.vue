@@ -110,50 +110,60 @@
 
     <v-dialog v-model="dialog" max-width="70%">
       <v-card>
-        <v-card-title class="py-5">
-          <h3>
-            我的餐單
-          </h3>
-        </v-card-title>
+        <div class="save-area">
+          <v-card-title class="py-5">
+            <h3>
+              我的餐單
+            </h3>
+          </v-card-title>
 
-        <v-simple-table class="mx-10 text-left total-table elevation-2">
-          <thead>
-            <tr>
-              <th>
-                食品名稱
-              </th>
-              <th>
-                份量
-              </th>
-              <th>
-                卡路里
-              </th>
-              <th class="action"></th>
-            </tr>
-          </thead>
+          <v-simple-table class="mx-10 text-left total-table elevation-2 mb-5">
+            <thead>
+              <tr>
+                <th>
+                  食品名稱
+                </th>
+                <th>
+                  份量
+                </th>
+                <th>
+                  卡路里
+                </th>
+                <th class="action"></th>
+              </tr>
+            </thead>
 
-          <tbody>
-            <tr v-for="(food, i) in selected" :key="i">
-              <td>{{ food.name }}</td>
-              <td>{{ food.quantity }}</td>
-              <td>{{ food.calorie }}</td>
-              <td class="text-center">
-                <v-btn icon @click="deleteFood(i)">
-                  <v-icon>mdi-delete</v-icon>
-                </v-btn>
-              </td>
-            </tr>
+            <tbody>
+              <tr v-for="(food, i) in selected" :key="i">
+                <td>{{ food.name }}</td>
+                <td>{{ food.quantity }}</td>
+                <td>{{ food.calorie }}</td>
+                <td class="text-center">
+                  <v-btn icon @click="deleteFood(i)">
+                    <v-icon>mdi-delete</v-icon>
+                  </v-btn>
+                </td>
+              </tr>
 
-            <tr class="accent white--text">
-              <td>總計</td>
-              <td>-</td>
-              <td>{{ totalCalorie }}</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </v-simple-table>
+              <tr class="accent white--text">
+                <td>總計</td>
+                <td>-</td>
+                <td>{{ totalCalorie }}</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </v-simple-table>
 
-        <v-card-actions class="mt-5 pa-6">
+          <a
+            :href="imgData"
+            download="我的餐單.png"
+            ref="downloadHref"
+            class="d-none"
+            >HELO</a
+          >
+        </div>
+
+        <v-card-actions class="pa-6">
           <v-btn
             color="red"
             dark
@@ -167,7 +177,7 @@
 
           <v-spacer />
 
-          <v-btn color="primary">
+          <v-btn color="primary" @click="saveData" :disabled="saving">
             複製資料
           </v-btn>
 
@@ -177,6 +187,10 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-overlay :value="saving" z-index="284">
+      <v-progress-circular indeterminate color="accent" />
+    </v-overlay>
   </v-app>
 </template>
 
@@ -184,12 +198,20 @@
 import { Component, Vue } from "vue-property-decorator";
 import foodData, { Food } from "./data/food";
 
+import html2canvas from "html2canvas";
+
 @Component
 export default class CalorieCalc extends Vue {
+  $refs!: {
+    downloadHref: HTMLElement;
+  };
+
   private dialog = false;
   private tab = 0;
   private drawer = false;
   private selected: Food[] = [];
+  private imgData = "";
+  private saving = false;
 
   private readonly tableHeaders = [
     { text: "食品名稱", value: "name" },
@@ -204,12 +226,24 @@ export default class CalorieCalc extends Vue {
 
   get totalCalorie() {
     const calories = this.selected.map(food => food.calorie);
-    console.debug(calories);
     return calories[0] ? calories.reduce((total, cur) => total + cur) : 0;
   }
 
   deleteFood(idx: number) {
     this.selected.splice(idx, 1);
+  }
+
+  async saveData() {
+    this.saving = true;
+
+    await new Promise(r => setTimeout(r, 250));
+    const $saveArea = document.querySelector(".save-area") as HTMLElement;
+    const canvas = await html2canvas($saveArea);
+    this.imgData = canvas.toDataURL();
+
+    await this.$nextTick();
+    this.$refs.downloadHref.click();
+    this.saving = false;
   }
 
   created() {
