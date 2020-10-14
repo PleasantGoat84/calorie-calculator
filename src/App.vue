@@ -57,6 +57,10 @@
 
       <template v-slot:extension>
         <v-tabs v-model="tab">
+          <v-tab>
+            所有食品
+          </v-tab>
+
           <v-tab v-for="(kind, i) in foodKinds" :key="i">
             {{ kind }}
           </v-tab>
@@ -69,16 +73,27 @@
         <v-card color="info" class="white--text mx-auto table-card">
           <v-card-title>
             <h2>{{ foodKinds[tab] }}</h2>
+
+            <v-spacer />
+
+            <v-text-field
+              v-model="search"
+              append-icon="mdi-magnify"
+              label="搜尋食品"
+              single-line
+              hide-details
+              dark
+            />
           </v-card-title>
 
           <v-data-table
             v-model="selected"
-            class="rounded-0"
             show-select
             :headers="tableHeaders"
-            :items="foodData[foodKinds[tab]]"
+            :items="tableData"
             item-key="name"
             :items-per-page="15"
+            :search="search"
           />
         </v-card>
       </v-container>
@@ -110,14 +125,14 @@
 
     <v-dialog v-model="dialog" max-width="70%">
       <v-card>
-        <div class="save-area">
+        <div class="save-area pb-5">
           <v-card-title class="py-5">
             <h3>
               我的餐單
             </h3>
           </v-card-title>
 
-          <v-simple-table class="mx-10 text-left total-table elevation-2 mb-5">
+          <v-simple-table class="mx-10 text-left total-table elevation-2">
             <thead>
               <tr>
                 <th>
@@ -139,7 +154,7 @@
                 <td>{{ food.quantity }}</td>
                 <td>{{ food.calorie }}</td>
                 <td class="text-center">
-                  <v-btn icon @click="deleteFood(i)">
+                  <v-btn icon @click="deleteFood(i)" data-html2canvas-ignore>
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
                 </td>
@@ -159,8 +174,12 @@
             download="我的餐單.png"
             ref="downloadHref"
             class="d-none"
-            >HELO</a
-          >
+          ></a>
+        </div>
+
+        <div class="mt-3">
+          保存圖片功能使用了最新的魔法, 有時更可能會有問題出現! <br />
+          如果施法失敗, 請使用系統截圖功能.
         </div>
 
         <v-card-actions class="pa-6">
@@ -178,7 +197,7 @@
           <v-spacer />
 
           <v-btn color="primary" @click="saveData" :disabled="saving">
-            複製資料
+            保存圖片
           </v-btn>
 
           <v-btn color="primary" text @click="dialog = false">
@@ -213,15 +232,31 @@ export default class CalorieCalc extends Vue {
   private imgData = "";
   private saving = false;
 
+  private search = "";
+
   private readonly tableHeaders = [
     { text: "食品名稱", value: "name" },
-    { text: "份量", value: "quantity" },
-    { text: "卡路里", value: "calorie" }
+    { text: "份量", value: "quantity", sortable: false, filterable: false },
+    { text: "卡路里", value: "calorie", filterable: false }
   ];
 
   readonly foodData = foodData;
+
+  get tableData() {
+    if (this.tab > 0) {
+      return this.foodData[this.foodKinds[this.tab]];
+    } else {
+      const allFood: Food[] = [];
+      Object.values(this.foodData).forEach(food => {
+        allFood.push(...food);
+      });
+
+      return allFood;
+    }
+  }
+
   get foodKinds() {
-    return Object.keys(this.foodData);
+    return ["所有食品", ...Object.keys(this.foodData)];
   }
 
   get totalCalorie() {
@@ -244,10 +279,6 @@ export default class CalorieCalc extends Vue {
     await this.$nextTick();
     this.$refs.downloadHref.click();
     this.saving = false;
-  }
-
-  created() {
-    //
   }
 }
 </script>
@@ -275,7 +306,7 @@ export default class CalorieCalc extends Vue {
 }
 
 .total-table {
-  max-height: 65vh;
+  max-height: 95vh;
   overflow-y: auto;
 
   .action {

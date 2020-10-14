@@ -4,7 +4,7 @@ export interface Food {
   calorie: number;
 }
 
-export default {
+const food: { [key: string]: Food[] } = {
   雞肉: [
     { name: "火雞", quantity: "1件", calorie: 130 },
     { name: "火雞(去皮)", quantity: "100g", calorie: 176 },
@@ -921,3 +921,5 @@ export default {
     { name: "紅蘿蔔番茄粟米(連材", quantity: "1000ml", calorie: 422 }
   ]
 };
+
+export default food;
