@@ -31,6 +31,20 @@
           <v-list-item-content>查看統計結果</v-list-item-content>
         </v-list-item>
 
+        <v-list-item
+          link
+          @click="
+            dayCalDialog = true;
+            drawer = false;
+          "
+        >
+          <v-list-item-icon>
+            <v-icon>mdi-calculator</v-icon>
+          </v-list-item-icon>
+
+          <v-list-item-content>計算每日代謝量</v-list-item-content>
+        </v-list-item>
+
         <v-divider />
         <v-subheader class="px-2">食品類別</v-subheader>
 
@@ -54,6 +68,13 @@
       <v-app-bar-nav-icon @click="drawer = !drawer" />
 
       <v-toolbar-title>製作我的餐單</v-toolbar-title>
+
+      <v-spacer />
+
+      <v-btn text x-large @click="dayCalDialog = true">
+        <v-icon left>mdi-calculator</v-icon>
+        每日代謝量
+      </v-btn>
 
       <template v-slot:extension>
         <v-tabs v-model="tab">
@@ -125,62 +146,48 @@
 
     <v-dialog v-model="dialog" max-width="70%">
       <v-card>
-        <div class="save-area pb-5">
-          <v-card-title class="py-5">
-            <h3>
-              我的餐單
-            </h3>
-          </v-card-title>
+        <v-card-title class="py-5">
+          <h3>
+            我的餐單
+          </h3>
+        </v-card-title>
 
-          <v-simple-table class="mx-10 text-left total-table elevation-2">
-            <thead>
-              <tr>
-                <th>
-                  食品名稱
-                </th>
-                <th>
-                  份量
-                </th>
-                <th>
-                  卡路里
-                </th>
-                <th class="action"></th>
-              </tr>
-            </thead>
+        <v-simple-table class="mx-10 text-left total-table elevation-2">
+          <thead>
+            <tr>
+              <th>
+                食品名稱
+              </th>
+              <th>
+                份量
+              </th>
+              <th>
+                卡路里
+              </th>
+              <th class="action"></th>
+            </tr>
+          </thead>
 
-            <tbody>
-              <tr v-for="(food, i) in selected" :key="i">
-                <td>{{ food.name }}</td>
-                <td>{{ food.quantity }}</td>
-                <td>{{ food.calorie }}</td>
-                <td class="text-center">
-                  <v-btn icon @click="deleteFood(i)" data-html2canvas-ignore>
-                    <v-icon>mdi-delete</v-icon>
-                  </v-btn>
-                </td>
-              </tr>
+          <tbody>
+            <tr v-for="(food, i) in selected" :key="i">
+              <td>{{ food.name }}</td>
+              <td>{{ food.quantity }}</td>
+              <td>{{ food.calorie }}</td>
+              <td class="text-center">
+                <v-btn icon @click="deleteFood(i)" data-html2canvas-ignore>
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </td>
+            </tr>
 
-              <tr class="accent white--text">
-                <td>總計</td>
-                <td>-</td>
-                <td>{{ totalCalorie }}</td>
-                <td></td>
-              </tr>
-            </tbody>
-          </v-simple-table>
-
-          <a
-            :href="imgData"
-            download="我的餐單.png"
-            ref="downloadHref"
-            class="d-none"
-          ></a>
-        </div>
-
-        <div class="mt-3">
-          保存圖片功能使用了最新的魔法, 有時更可能會有問題出現! <br />
-          如果施法失敗, 請使用系統截圖功能.
-        </div>
+            <tr class="accent white--text">
+              <td>總計</td>
+              <td>-</td>
+              <td>{{ totalCalorie }}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </v-simple-table>
 
         <v-card-actions class="pa-6">
           <v-btn
@@ -196,14 +203,68 @@
 
           <v-spacer />
 
-          <v-btn color="primary" @click="saveData" :disabled="saving">
-            保存圖片
-          </v-btn>
-
-          <v-btn color="primary" text @click="dialog = false">
+          <v-btn color="primary" @click="dialog = false">
             返回
           </v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="dayCalDialog" max-width="50%">
+      <v-card>
+        <v-card-title>每日代謝量</v-card-title>
+
+        <v-container fluid>
+          <v-row>
+            <v-col cols="5" class="pl-8">
+              <v-radio-group row label="性別" v-model="sex">
+                <v-radio label="男" color="blue" value="m" />
+                <v-radio label="女" color="pink" value="f" />
+              </v-radio-group>
+              <v-text-field
+                label="身高"
+                placeholder="請輸入身高"
+                suffix="cm"
+                type="number"
+                min="0"
+                v-model="height"
+                :rules="[positiveNum]"
+              />
+              <v-text-field
+                label="體重"
+                placeholder="請輸入體重"
+                suffix="kg"
+                type="number"
+                min="0"
+                v-model="weight"
+                :rules="[positiveNum]"
+              />
+              <v-text-field
+                label="年齡"
+                placeholder="請輸入年齡"
+                suffix="歲"
+                type="number"
+                min="0"
+                v-model="age"
+                :rules="[positiveNum]"
+              />
+            </v-col>
+            <v-col cols>
+              <h2 class="mb-3">每日熱量需求</h2>
+              <div
+                v-for="(type, i) in dayCalResult"
+                :key="i"
+                class="subtitle-1"
+              >
+                {{ type.text }}:
+                <b class="accent--text">{{
+                  dayCalInputValid ? type.value : "--"
+                }}</b>
+                卡
+              </div>
+            </v-col>
+          </v-row>
+        </v-container>
       </v-card>
     </v-dialog>
 
@@ -217,22 +278,25 @@
 import { Component, Vue } from "vue-property-decorator";
 import foodData, { Food } from "./data/food";
 
-import html2canvas from "html2canvas";
-
 @Component
 export default class CalorieCalc extends Vue {
-  $refs!: {
-    downloadHref: HTMLElement;
-  };
-
   private dialog = false;
   private tab = 0;
   private drawer = false;
   private selected: Food[] = [];
-  private imgData = "";
   private saving = false;
 
   private search = "";
+
+  private dayCalDialog = false;
+  private readonly positiveNum = (v: string) =>
+    !v || !v.length || Number(v) > 0;
+
+  // dayCal stuffs
+  private sex: "m" | "f" = "m";
+  private height = "";
+  private weight = "";
+  private age = "";
 
   private readonly tableHeaders = [
     { text: "食品名稱", value: "name" },
@@ -268,17 +332,44 @@ export default class CalorieCalc extends Vue {
     this.selected.splice(idx, 1);
   }
 
-  async saveData() {
-    this.saving = true;
+  get dayCalInputValid() {
+    return !!Number(this.height) && !!Number(this.weight) && !!Number(this.age);
+  }
 
-    await new Promise(r => setTimeout(r, 250));
-    const $saveArea = document.querySelector(".save-area") as HTMLElement;
-    const canvas = await html2canvas($saveArea);
-    this.imgData = canvas.toDataURL();
+  get dayCalResult() {
+    const c = {
+      m: {
+        base: 66,
+        w: 13.8,
+        h: 5,
+        a: -6.8
+      },
+      f: {
+        base: 655,
+        w: 9.6,
+        h: 1.8,
+        a: -4.7
+      }
+    }[this.sex];
+    const types = [
+      { text: "基礎代謝量", ratio: 1 },
+      { text: "辦公室久坐型", ratio: 1.2 },
+      { text: "輕度活動型", ratio: 1.375 },
+      { text: "中度運動型", ratio: 1.55 },
+      { text: "重度運動型", ratio: 1.725 },
+      { text: "體力勞動型", ratio: 1.9 }
+    ];
 
-    await this.$nextTick();
-    this.$refs.downloadHref.click();
-    this.saving = false;
+    return types.map(t => ({
+      text: t.text,
+      value: Math.floor(
+        (c.base +
+          Number(this.weight) * c.w +
+          Number(this.height) * c.h +
+          Number(this.age) * c.a) *
+          t.ratio
+      )
+    }));
   }
 }
 </script>
