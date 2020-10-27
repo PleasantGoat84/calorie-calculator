@@ -64,7 +64,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-app-bar app color="primary darken-2" dark>
+    <v-app-bar app color="primary" dark>
       <v-app-bar-nav-icon @click="drawer = !drawer" />
 
       <v-toolbar-title>製作我的餐單</v-toolbar-title>
@@ -119,6 +119,23 @@
         </v-card>
       </v-container>
     </v-main>
+
+    <v-footer class="info" dark>
+      <v-container class="py-0">
+        <v-row no-gutters class="px-5">
+          <v-col cols="auto" class="d-flex align-center">
+            卡路里計算器
+          </v-col>
+          <v-col class="d-flex align-center justify-center">
+            <span> Developed by <b>Terry_CCI</b> @ 勞校電腦科組 </span>
+          </v-col>
+          <v-col cols="auto" class="d-flex align-center">
+            2020.10
+            <v-img src="./assets/70.svg" contain width="60px" class="ml-2" />
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-footer>
 
     <v-bottom-navigation
       fixed
@@ -265,6 +282,14 @@
             </v-col>
           </v-row>
         </v-container>
+
+        <v-card-actions>
+          <v-spacer />
+
+          <v-btn color="primary" @click="dayCalDialog = false">
+            返回
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
 
