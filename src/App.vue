@@ -78,10 +78,6 @@
 
       <template v-slot:extension>
         <v-tabs v-model="tab">
-          <v-tab>
-            所有食品
-          </v-tab>
-
           <v-tab v-for="(kind, i) in foodKinds" :key="i">
             {{ kind }}
           </v-tab>
@@ -164,8 +160,17 @@
     <v-dialog v-model="dialog" max-width="70%">
       <v-card>
         <v-card-title class="py-5">
-          <h3>
-            我的餐單
+          <h3 class="d-flex align-end" style="width: 7.5em;">
+            <v-text-field
+              v-model="name"
+              single-line
+              placeholder="我"
+              class="flex-grow-0 py-0 text-h5 font-weight-bold"
+              hide-details
+            />
+            <span class="flex-grow-1 flex-shrink-0">
+              的餐單
+            </span>
           </h3>
         </v-card-title>
 
@@ -317,6 +322,8 @@ export default class CalorieCalc extends Vue {
   private readonly positiveNum = (v: string) =>
     !v || !v.length || Number(v) > 0;
 
+  private name = "";
+
   // dayCal stuffs
   private sex: "m" | "f" = "m";
   private height = "";
@@ -350,7 +357,9 @@ export default class CalorieCalc extends Vue {
 
   get totalCalorie() {
     const calories = this.selected.map(food => food.calorie);
-    return calories[0] ? calories.reduce((total, cur) => total + cur) : 0;
+    return calories[0]
+      ? calories.reduce((total, cur) => total + cur).toFixed(2)
+      : 0;
   }
 
   deleteFood(idx: number) {
