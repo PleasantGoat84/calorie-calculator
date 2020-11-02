@@ -165,7 +165,8 @@
               v-model="name"
               single-line
               placeholder="我"
-              class="flex-grow-0 py-0 text-h5 font-weight-bold"
+              class="flex-grow-0 py-0 font-weight-bold"
+              id="name-field"
               hide-details
             />
             <span class="flex-grow-1 flex-shrink-0">
@@ -437,5 +438,10 @@ export default class CalorieCalc extends Vue {
   .action {
     width: 100px;
   }
+}
+
+#name-field {
+  font-size: 1.5rem;
+  max-height: calc(1.5rem + 16px);
 }
 </style>
