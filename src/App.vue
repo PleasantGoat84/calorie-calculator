@@ -76,6 +76,11 @@
         每日代謝量
       </v-btn>
 
+      <v-btn text x-large @click="actCalDialog = true">
+        <v-icon left>mdi-run</v-icon>
+        運動的卡路里消耗
+      </v-btn>
+
       <template v-slot:extension>
         <v-tabs v-model="tab">
           <v-tab v-for="(kind, i) in foodKinds" :key="i">
@@ -280,9 +285,7 @@
                 class="subtitle-1"
               >
                 {{ type.text }}:
-                <b class="accent--text">{{
-                  dayCalInputValid ? type.value : "--"
-                }}</b>
+                <b class="accent--text">{{ type.value || "--" }}</b>
                 卡
               </div>
             </v-col>
@@ -299,6 +302,91 @@
       </v-card>
     </v-dialog>
 
+    <v-dialog v-model="actCalDialog" max-width="85%">
+      <v-card>
+        <v-card-title>運動的卡路里消耗</v-card-title>
+
+        <v-container fluid class="px-10">
+          <v-row>
+            <v-col cols="auto">
+              <v-radio-group row label="性別" v-model="sex">
+                <v-radio label="男" color="blue" value="m" />
+                <v-radio label="女" color="pink" value="f" />
+              </v-radio-group>
+            </v-col>
+            <v-col>
+              <v-text-field
+                label="身高"
+                placeholder="請輸入身高"
+                suffix="cm"
+                type="number"
+                min="0"
+                v-model="height"
+                :rules="[positiveNum]"
+              />
+            </v-col>
+            <v-col>
+              <v-text-field
+                label="體重"
+                placeholder="請輸入體重"
+                suffix="kg"
+                type="number"
+                min="0"
+                v-model="weight"
+                :rules="[positiveNum]"
+              />
+            </v-col>
+            <v-col>
+              <v-text-field
+                label="年齡"
+                placeholder="請輸入年齡"
+                suffix="歲"
+                type="number"
+                min="0"
+                v-model="age"
+                :rules="[positiveNum]"
+              /> </v-col
+            ><v-col>
+              <v-text-field
+                label="運動時間"
+                placeholder="請輸入運動時間"
+                suffix="分鐘"
+                type="number"
+                min="0"
+                v-model="actTime"
+                :rules="[positiveNum]"
+              />
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <v-col cols>
+              <v-simple-table class="text-left">
+                <tbody>
+                  <tr v-for="(a, i) in activityCalResult" :key="i">
+                    <td class="subtitle-1">{{ a.text }}</td>
+                    <td class="subtitle-1">
+                      <span class="accent--text font-weight-bold">
+                        {{ a.value || "--" }} </span
+                      >卡
+                    </td>
+                  </tr>
+                </tbody>
+              </v-simple-table>
+            </v-col>
+          </v-row>
+        </v-container>
+
+        <v-card-actions>
+          <v-spacer />
+
+          <v-btn color="primary" @click="actCalDialog = false">
+            返回
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <v-overlay :value="saving" z-index="284">
       <v-progress-circular indeterminate color="accent" />
     </v-overlay>
@@ -308,6 +396,9 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import foodData, { Food } from "./data/food";
+
+import dayCalType from "@/data/dayCal";
+import activities from "@/data/activityCal";
 
 @Component
 export default class CalorieCalc extends Vue {
@@ -320,6 +411,7 @@ export default class CalorieCalc extends Vue {
   private search = "";
 
   private dayCalDialog = false;
+  private actCalDialog = false;
   private readonly positiveNum = (v: string) =>
     !v || !v.length || Number(v) > 0;
 
@@ -330,6 +422,7 @@ export default class CalorieCalc extends Vue {
   private height = "";
   private weight = "";
   private age = "";
+  private actTime = "60";
 
   private readonly tableHeaders = [
     { text: "食品名稱", value: "name" },
@@ -367,11 +460,7 @@ export default class CalorieCalc extends Vue {
     this.selected.splice(idx, 1);
   }
 
-  get dayCalInputValid() {
-    return !!Number(this.height) && !!Number(this.weight) && !!Number(this.age);
-  }
-
-  get dayCalResult() {
+  get calBase() {
     const c = {
       m: {
         base: 66,
@@ -386,24 +475,32 @@ export default class CalorieCalc extends Vue {
         a: -4.7
       }
     }[this.sex];
-    const types = [
-      { text: "基礎代謝量", ratio: 1 },
-      { text: "辦公室久坐型", ratio: 1.2 },
-      { text: "輕度活動型", ratio: 1.375 },
-      { text: "中度運動型", ratio: 1.55 },
-      { text: "重度運動型", ratio: 1.725 },
-      { text: "體力勞動型", ratio: 1.9 }
-    ];
+
+    if (!(Number(this.weight) && Number(this.height) && Number(this.age)))
+      return NaN;
+
+    return (
+      c.base +
+      Number(this.weight) * c.w +
+      Number(this.height) * c.h +
+      Number(this.age) * c.a
+    );
+  }
+
+  get dayCalResult() {
+    const types = dayCalType;
 
     return types.map(t => ({
       text: t.text,
-      value: Math.floor(
-        (c.base +
-          Number(this.weight) * c.w +
-          Number(this.height) * c.h +
-          Number(this.age) * c.a) *
-          t.ratio
-      )
+      value: Math.floor(this.calBase * t.ratio)
+    }));
+  }
+
+  get activityCalResult() {
+    const acts = activities;
+    return acts.map(a => ({
+      text: a.text,
+      value: Math.floor((this.calBase * a.ratio * Number(this.actTime)) / 60)
     }));
   }
 }
